@@ -12,6 +12,7 @@ const app = express();
 
 app.use(express.json());
 app.use(express.static("spa/build"));
+app.use(cookieParser());
 
 app.get("/client.mjs", (_, res) => {
     res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
@@ -21,25 +22,31 @@ app.get("/client.mjs", (_, res) => {
     });
 });
 
-let currentUser = null; // Переменная для хранения текущего пользователя
-
 app.get('/api/getUser', (req, res) => {
-    res.json({ username: currentUser });
+    res.json({
+        user: req.cookies.user
+    });
 });
 
 app.post('/api/loginUser', (req, res) => {
-    const { username } = req.body;
-    currentUser = username;
-    res.json({ username: currentUser });
+    let user = req.body.user;
+    res.cookie('user', user, {
+        httpOnly: false,
+        secure: true,
+        sameSite: 'strict'
+    });
+    res.json({
+        user: user
+    });
 });
 
-app.get('/api/logoutUser', (req, res) => {
-    currentUser = null;
-    res.json({ message: 'Пользователь успешно разлогинен' });
+app.post('/api/logoutUser', (req, res) => {
+    res.clearCookie('user');
+    res.send();
 });
 
 app.get('/api', (req, res) => {
-    res.json({ message: 'API работает' });
+    res.json({message: 'API работает'});
 });
 
 app.get("/*", (req, res) => {
