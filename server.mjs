@@ -18,12 +18,20 @@ app.get("/client.mjs", (_, res) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`App listening on port ${port}`);
-});
-
 app.use(express.static("spa/build"));
 
 app.get("/*", (req, res) => {
     res.sendFile(path.resolve("spa/build/index.html"));
 });
+
+https
+    .createServer(
+        {
+            key: fs.readFileSync("certs/server.key"),
+            cert: fs.readFileSync("certs/server.cert"),
+        },
+        app
+    )
+    .listen(port, () => {
+        console.log(`App listening on port ${port}`);
+    });
