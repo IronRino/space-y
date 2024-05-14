@@ -22,9 +22,20 @@ app.get("/client.mjs", (_, res) => {
     });
 });
 
+function validate(request, response, next) {
+    const isAuthorized = request.body.user === null;
+
+    if (!isAuthorized && !(request.path.startsWith("/static") || request.path.startsWith("/api") || request.path === "/login")) {
+        response.redirect("/login");
+    }
+    next();
+}
+
+app.use(validate);
+
 app.get('/api/getUser', (req, res) => {
     res.json({
-        user: req.cookies.user
+        user: req.cookies.user || null
     });
 });
 
@@ -36,7 +47,7 @@ app.post('/api/loginUser', (req, res) => {
         sameSite: 'strict'
     });
     res.json({
-        user: user
+        user: user || null
     });
 });
 
